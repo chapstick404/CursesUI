@@ -16,31 +16,16 @@ def main(stdscr):
     label4 = CursesWidgets.LabelWidget("test1")
     label5 = CursesWidgets.LabelWidget("test2")
 
-    textinput = CursesWidgets.TextBox()
-    # layout = CursesLayouts.HorizonalLayout()
     vertlayout1 = CursesLayouts.VerticalLayout()
     display.layout = vertlayout1
     # layout.add_widget(vertlayout1)
     vertlayout1.add_widget(label)
-    vertlayout1.add_widget(label2)
-    vertlayout1.add_widget(label3)
-    #layout.add_widget(textinput)
 
 
     display.draw_scrn()
-    #layout.add_widget(CursesWidgets.ListView(mylines))
-    #layout.add_widget(textinput)
-
     while display.wait_for_enter():
         display.draw_scrn()
 
-
-    selcetion = display.get_value_of_widget(0)
-    display.clear_widgets()
-    display.add_widget(CursesWidgets.TitleWidget(str(selcetion)))
-    display.draw_scrn()
-    while True:
-        display.widget_input()
 
 def smalltests(stdscr: curses.window):
     colorlist = (("red", curses.COLOR_RED),
@@ -80,6 +65,5 @@ def test(stdscr):
     while True:
         keypress = stdscr.getch()
         stdscr.addstr(str(curses.keyname(keypress)))
-
 
 curses.wrapper(main)

@@ -1,7 +1,6 @@
 import curses
 import curses.textpad
-import types
-from functools import singledispatch, singledispatchmethod
+
 
 import CursesLogger
 import CursesWidgets
@@ -9,6 +8,7 @@ import abc
 
 
 class Layout(CursesWidgets.DisplayWidget):
+    widgets: list[CursesWidgets.DisplayWidget]
     win: curses.window
     logger: CursesLogger.Logger
 
@@ -71,7 +71,7 @@ class Layout(CursesWidgets.DisplayWidget):
         self.active_widget += 1
         if self.active_widget > len(self.widgets) - 1:
             self.active_widget = 0
-        if self.widgets[self.active_widget].accept_input == True:
+        if self.widgets[self.active_widget].accept_input:
             self.move_to_active()
         else:
             self.active_widget -= 1
@@ -81,10 +81,10 @@ class Layout(CursesWidgets.DisplayWidget):
                       self.widgets[self.active_widget].win.getbegyx()[1])
         self.win.cursyncup()
 
-    def update_to_active(self):  # todo remove
-        if hasattr(self.widgets[self.active_widget], "value"):
-            if self.widgets[self.active_widget].text != -1:
-                self.value = self.widgets[self.active_widget].text
+    # def update_to_active(self):  # todo remove
+    #     if hasattr(self.widgets[self.active_widget], "value"):
+    #         if self.widgets[self.active_widget].text != -1:
+    #             self.value = self.widgets[self.active_widget].text
 
     def input(self, keypress):
         if keypress == 9:
@@ -93,7 +93,11 @@ class Layout(CursesWidgets.DisplayWidget):
             self.widget_input(keypress)
 
     def widget_input(self, keypress):  # todo send input for any widget
-        self.widgets[self.active_widget].handle_input(keypress)
+        if self.widgets[self.active_widget].accept_input:  # check to see if the widget can accept input
+            # noinspection PyUnresolvedReferences
+            self.widgets[self.active_widget].handle_input(keypress)
+        else:
+            return
 
     def save_screen(self):
         self.screen.append(self.widgets)

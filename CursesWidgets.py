@@ -4,46 +4,81 @@ import curses.textpad
 import CursesLogger
 
 
-class DisplayWidget(abc.ABC):  # basic display widget
+class DisplayWidget(abc.ABC):
+    """Abstract base class for displaying widgets."""
+
     win: curses.window
     logger: CursesLogger.Logger
 
-    def __init__(self):
-        self.accept_input = True
+    _accept_input = False
+
+    @property
+    def accept_input(self):
+        """Property to control if the widget handles input"""
+        return self._accept_input
 
     def add_win(self, win: curses.window):
+        """Adds a new window. Should only be used by the owning widget.
+        :param win: The window to add.
+        :type win: curses.window
+        """
         self.logger.log("Widget Gaining Window", str(win))
         self.win = win
 
     def draw(self):
+        """Draws the widget and any widgets the widget owns."""
         self.logger.log("Widget Drawing", str(self))
         self.draw_self()
 
     @abc.abstractmethod
     def draw_self(self):
+        """Draws the widget and only itself."""
         pass
 
     def resize(self, y: int, x: int):
-        self.logger.log("Reszing ", str([y,x]))
+        """Allows the widget to resize to a new size.
+        :param x: x dimension
+        :param y: y dimension"""
+        self.logger.log("Reszing ", str([y, x]))
         self.win.erase()
         self.win.resize(y, x)
 
+
+class InputWidget(DisplayWidget):
+    """Abstract base class for widgets that can handle input."""
+
+    _accept_input = True
+
+    @property
+    def accept_input(self):
+        """Property to control if the widget handles input"""
+        return self._accept_input
+
+    @accept_input.setter
+    def accept_input(self, value):
+        self._accept_input = value
+
+    @abc.abstractmethod
     def handle_input(self, keypress):
-        return False
+        """Abstract function to handle keypress.
+        :type keypress: str
+        :param keypress: Keypress to handle"""
+        return True
 
 
-class ValueWidget(DisplayWidget):
+class ContentWidget(DisplayWidget):
+    """Abstract widget that holds a content value"""
+
     @abc.abstractmethod
     def __init__(self, value):
-        super().__init__()
-        self.accept_input = True
         self.value = value
 
 
-class TitleWidget(ValueWidget):
+class TitleWidget(ContentWidget):
+    """A widget that is meant to be a title"""
+
     def __init__(self, title: str):
         super().__init__(title)
-        self.accept_input = False
 
     def draw_self(self):
         self.logger.log("Drawing Title To Screen")
@@ -51,12 +86,13 @@ class TitleWidget(ValueWidget):
 
 
 class LabelWidget(TitleWidget):
+    """A simple widget to put a piece of text on the screen"""
+
     def __init__(self, text: str):
         super().__init__(text)
-        self.accept_input = True
         self.value_changed = True
 
-    def draw_self(self, logger=None):
+    def draw_self(self, logger=None):  ##todo: allow for position of the lable
         self.logger.log("Label Widget is drawing", str(self))
         if self.win is not None:
             if self.value_changed:
@@ -66,6 +102,7 @@ class LabelWidget(TitleWidget):
                 self.win.refresh()
 
     def change_value(self, value):
+        """Changes the displayed text."""
         self.logger.log("Label value changed")
         self.value = str(value)
         self.value_changed = True
@@ -76,7 +113,9 @@ class LabelWidget(TitleWidget):
         super().draw_self()
 
 
-class ListView(DisplayWidget):
+class ListView(InputWidget):
+    """Display a list of things and allows for scrolling"""
+
     def __init__(self, values: list):
         super().__init__()
         self.line_pos = 0
@@ -87,7 +126,7 @@ class ListView(DisplayWidget):
         self.logger.log("ListView is drawing")
         self.win.clear()
 
-        if self.win.getmaxyx()[0] > len(self.values): #todo move to add_win
+        if self.win.getmaxyx()[0] > len(self.values):  #todo move to add_win
             lines = len(self.values)
         else:
             lines = self.win.getmaxyx()[0]
@@ -117,6 +156,8 @@ class ListView(DisplayWidget):
 
 
 class MultiColumnList(ListView):
+    """Displays a list with multiple columns"""
+
     def __init__(self, values: list):
         super().__init__(values)
         self.lists = []
@@ -142,6 +183,7 @@ class MultiColumnList(ListView):
 
 
 class ListMenu(ListView):
+    """A menu that is a list of options"""
 
     def __init__(self, values: list):
         super().__init__(values)
@@ -152,7 +194,8 @@ class ListMenu(ListView):
     def draw_self(self, logger=None):
         self.logger.log("MultiColumnList is drawing")
         self.win.clear()
-        if self.win.getmaxyx()[0] > len(self.values):  # makes sure the list wont wrap around if the screen is bigger then the values
+        if self.win.getmaxyx()[0] > len(
+                self.values):  # makes sure the list wont wrap around if the screen is bigger then the values
             lines = len(self.values)
         else:
             lines = self.win.getmaxyx()[0]
@@ -190,7 +233,7 @@ class ListMenu(ListView):
             self.value = self.cursor + self.list_pos - 1
 
 
-class TextBox(DisplayWidget):
+class TextBox(InputWidget):
     def __init__(self):
         super().__init__()
         self.value = None
