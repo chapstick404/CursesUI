@@ -300,3 +300,11 @@ class TextInput(TextBox):
         self.win.box()
         self.editwin.resize(1, x - 3)
         self.win.refresh()
+
+
+class WompWomp(TitleWidget):
+    """A completely useless widget that is a failure, no one should ever use this.
+    Takes no arguments for display, just displays \"Womp Womp\" as a title"""
+    def __init__(self):
+        super().__init__("Womp Womp")
+        self.win = None
