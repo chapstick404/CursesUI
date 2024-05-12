@@ -82,22 +82,34 @@ class TitleWidget(ContentWidget):
 
     def draw_self(self):
         self.logger.log("Drawing Title To Screen")
-        self.win.addstr(self.value)
+        if self.value is not None:
+            xcord = int((self.win.getmaxyx()[1] / 2) - len(self.value) / 2)
+            self.win.addstr(0, xcord, self.value)
+        else:
+            self.logger.log("Undefined")
+            self.win.addstr(0, 0, "Undefined")  # If this is ever called something bad happened, fix your shit
 
 
 class LabelWidget(TitleWidget):
     """A simple widget to put a piece of text on the screen"""
+    ycord: int | None
+    xcord: int | None
 
-    def __init__(self, text: str):
+    def __init__(self, text: str, xcord: int = None, ycord: int = None):
         super().__init__(text)
+        self.xcord = xcord
+        self.ycord = ycord
         self.value_changed = True
 
-    def draw_self(self, logger=None):  ##todo: allow for position of the lable
+    def draw_self(self, logger=None):
         self.logger.log("Label Widget is drawing", str(self))
         if self.win is not None:
             if self.value_changed:
                 self.logger.log("Label Widget is refreshing")
-                self.win.addstr(0, 0, self.value)
+                if self.xcord is not None and self.ycord is not None:
+                    self.win.addstr(self.ycord, self.xcord, self.value)
+                else:
+                    self.win.addstr(0, 0, self.value)
                 self.value_changed = False
                 self.win.refresh()
 
@@ -110,7 +122,7 @@ class LabelWidget(TitleWidget):
 
     def resize(self, y: int, x: int):
         self.value_changed = True
-        super().draw_self()
+        self.draw_self()
 
 
 class ListView(InputWidget):
@@ -126,7 +138,7 @@ class ListView(InputWidget):
         self.logger.log("ListView is drawing")
         self.win.clear()
 
-        if self.win.getmaxyx()[0] > len(self.values):  #todo move to add_win
+        if self.win.getmaxyx()[0] > len(self.values):  # todo move to add_win
             lines = len(self.values)
         else:
             lines = self.win.getmaxyx()[0]
@@ -234,6 +246,8 @@ class ListMenu(ListView):
 
 
 class TextBox(InputWidget):
+    """A widget that is a text box"""
+
     def __init__(self):
         super().__init__()
         self.value = None
@@ -252,9 +266,12 @@ class TextBox(InputWidget):
         self.editwin.refresh()
 
     def handle_input(self, keypress):
-        self.logger.log("Textbox handling keypress")
+        self.logger.log(str(type(self)) + "handling keypress")
+        if str(curses.keyname(keypress)) == "b'^J'":
+            self.value = self.text_box.gather()
         if self.text_box.do_command(keypress) == 0:
             self.value = self.text_box.gather()
+            self.logger.log("Setting Value")
         self.editwin.cursyncup()
         self.editwin.refresh()
 
@@ -274,14 +291,6 @@ class TextInput(TextBox):
         self.win.resize(3, x)
         self.editwin = self.win.derwin(1, 1)
         self.text_box = curses.textpad.Textbox(self.editwin)
-        self.editwin.refresh()
-
-    def handle_input(self, keypress):
-        self.logger.log("TextInput handling keypress")
-        if str(curses.keyname(keypress)) == "b'^J'":
-            self.value = self.text_box.gather()
-        if self.text_box.do_command(keypress) == 0:
-            self.value = self.text_box.gather()
         self.editwin.refresh()
 
     def resize(self, y: int, x: int):

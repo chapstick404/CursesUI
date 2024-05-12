@@ -53,8 +53,5 @@ class Display(abc.ABC):
 
     def wait_for_enter(self):
         keypress = self.scrn.getch()
-        if str(curses.keyname(keypress)) == "b'^J'":
-            return False
-        else:
-            self.handle_input(keypress)
-            return True
+        self.handle_input(keypress)
+        return not(str(curses.keyname(keypress)) == "b'^J'")

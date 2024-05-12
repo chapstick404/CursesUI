@@ -45,8 +45,6 @@ class Layout(CursesWidgets.DisplayWidget):
         return self.widgets[pos]
 
     def clear_widgets(self):
-        for item in self.widgets:
-            del item
         self.widgets = []
         self.win.clear()
 
