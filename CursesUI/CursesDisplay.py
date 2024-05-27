@@ -1,8 +1,7 @@
-import CursesWidgets
-import CursesLayouts
+
+from CursesUI import CursesLayouts, CursesLayouts, CursesLogger
 import curses
 import abc
-import CursesLogger
 
 
 class Display(abc.ABC):

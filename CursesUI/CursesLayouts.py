@@ -2,15 +2,15 @@ import curses
 import curses.textpad
 
 
-import CursesLogger
-import CursesWidgets
+from CursesUI import CursesWidgets
 import abc
+from CursesUI.CursesLogger import Logger
 
 
 class Layout(CursesWidgets.DisplayWidget):
     widgets: list[CursesWidgets.DisplayWidget]
     win: curses.window
-    logger: CursesLogger.Logger
+    logger: Logger
 
     def __init__(self, log_level: int = 0):
         super().__init__()

@@ -1,7 +1,7 @@
 import abc
 import curses
 import curses.textpad
-import CursesLogger
+from CursesUI import CursesLogger
 
 
 class DisplayWidget(abc.ABC):

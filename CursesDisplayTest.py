@@ -1,6 +1,4 @@
-import CursesDisplay
-import CursesWidgets
-import CursesLayouts
+from CursesUI import CursesDisplay, CursesLayouts, CursesWidgets
 import curses
 
 
