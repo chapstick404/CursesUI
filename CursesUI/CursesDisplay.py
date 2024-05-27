@@ -1,8 +1,8 @@
-import CursesWidgets
-import CursesLayouts
+
+from CursesUI import CursesLayouts, CursesLayouts, CursesLogger
 import curses
 import abc
-import CursesLogger
+
 
 class Display(abc.ABC):
     _layout: CursesLayouts.Layout
@@ -23,10 +23,10 @@ class Display(abc.ABC):
         return self._layout
 
     @layout.setter
-    def layout(self, value: CursesLayouts.Layout): #todo change to make class here
+    def layout(self, value: CursesLayouts.Layout):  #todo change to make class here
         scrn_size = self.scrn.getmaxyx()
         self._layout = value
-        self._layout.win = self.scrn.derwin(0,0)
+        self._layout.win = self.scrn.derwin(0, 0)
         self._layout.win.resize(scrn_size[0], scrn_size[1])
         self._layout.logger = self.logger
 
@@ -36,8 +36,7 @@ class Display(abc.ABC):
         self.logger.log("Drawing screen", "Cursor Position: " + str(self.scrn.getyx()))
         self.scrn.refresh()
 
-
-    def clear_layout(self): #may cause memory leak
+    def clear_layout(self):  #may cause memory leak
         self._layout.clear_widgets()
         self.scrn.clear()
 
@@ -45,6 +44,7 @@ class Display(abc.ABC):
         self.logger.log("Handling Input", "Cursor Position: " + str(self.scrn.getyx()))
         if keypress is None:
             keypress = self.scrn.getch()
+
         if keypress == 9:
             self._layout.change_active()
         else:
@@ -52,8 +52,5 @@ class Display(abc.ABC):
 
     def wait_for_enter(self):
         keypress = self.scrn.getch()
-        if str(curses.keyname(keypress)) == "b'^J'":
-            return False
-        else:
-            self.handle_input(keypress)
-            return True
+        self.handle_input(keypress)
+        return not(str(curses.keyname(keypress)) == "b'^J'")
